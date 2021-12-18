@@ -411,8 +411,8 @@ TreeNode* WriteStmt(void) {
         new_root_ptr->kind.stmt = WriteK;
         /* consume the input token */
         match(token.tType);
-        /* make the experssion left child to this write statment */
-        new_root_ptr->left = Exp();
+        /* make the experssion middle child to this write statment */
+        new_root_ptr->middle = Exp();
         temp_ptr = new_root_ptr;
     }
     else {
