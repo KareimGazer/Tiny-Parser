@@ -89,12 +89,24 @@ void printToken(Token t);
 
 // parser
 void error(void);
+
 void match(TokenType expectedTokenType);
 
-TreeNode* Exp(void);
+TreeNode* SimpleExp(void);
 TreeNode* term(void);
 TreeNode* factor(void); 
-
+/*****************************************
+ *      Karim Amin functions prototypes  *
+ *****************************************/     
+TreeNode* Exp(void);
+TreeNode* WriteStmt(void);
+TreeNode* ReadStmt(void);
+TreeNode* AssignStmt(void);
+TreeNode* RepeatStmt(void);
+TreeNode* IfStmt(void); 
+TreeNode* Statement(void);
+TreeNode* Stmt_Sequence(void);
+TreeNode* Program(void);
 // printing the exp of the tree
 void inOrder(TreeNode * root); // for tree traversal
 void printExpNode(TreeNode * node);
@@ -112,7 +124,7 @@ int main() {
 
   TreeNode * root;
   token = getToken(); // initialize the token
-  root = Exp(); // build the tree
+  root = SimpleExp(); // build the tree
 
    // print the tree
   inOrder(root);
@@ -134,9 +146,8 @@ void error(void){
   exit(1);
 }
 
-TreeNode* Exp(void){
+TreeNode* SimpleExp(void){
   TreeNode *temp = new TreeNode();
-
   temp = term();
   while(token.tType == PLUS || token.tType == MINUS){
 
@@ -184,7 +195,7 @@ TreeNode* factor(void){
 
   if(token.tType == OPENBRACKET){
     match(OPENBRACKET);
-    temp = Exp();
+    temp = SimpleExp();
     match(CLOSEDBRACKET);
   }
   else if(token.tType == NUMBER){
