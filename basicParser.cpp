@@ -362,12 +362,35 @@ void printToken(Token t) {
 /*****************************************
  *    Karim Amin functions definitions   *
  *****************************************/
-TreeNode* Exp(void) {
+T/*
+ * Describtion:  this function returns pointer to defien this grammar Rule Exp ---------> SimpleExp [ ( < | = ) SimpleExp ]
+ */
+    TreeNode* Exp(void) {
     /* Create new node */
     TreeNode* temp_ptr = new TreeNode();
+    /* this will be the left child of the new node */
+    /* after this line the token will point to the next token to be consumed */
     temp_ptr = SimpleExp();
     if (token.tType == LESSTHAN || token.tType == EQUAL) {
+        /* create node from type experssion (operation) */
+        /* this will be the new root pointer */
         TreeNode* curr_ptr = new TreeNode;
-
+        /* store the line number */
+        curr_ptr->lineno = token.lineno;
+        /* set the type to be experssion */
+        curr_ptr->nodekind = ExpK;
+        /* the operation is integer */
+        curr_ptr->type = Integer;
+        curr_ptr->kind.exp = OpK;
+        /* the attribute will be ( < OR = )*/
+        curr_ptr->attr.op = token.tType;
+        /* advance the input token */
+        match(token.tType);
+        curr_ptr->left = temp_ptr;
+        curr_ptr->right = SimpleExp();
+        /* to return Root pointer */
+        temp_ptr = curr_ptr;
     }
+    /* return the root ptr */
+    return temp_ptr;
 }
