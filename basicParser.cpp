@@ -394,3 +394,30 @@ T/*
     /* return the root ptr */
     return temp_ptr;
 }
+/*
+ * Describtion:  this function returns pointer to define this grammar Rule WriteStmt ---------> Write Exp
+ *
+ */
+TreeNode* WriteStmt(void) {
+    /* Create new node */
+    TreeNode* temp_ptr = new TreeNode();
+    /* check non-terminal "write" */
+    if (token.tType == WRITE) {
+        TreeNode* new_root_ptr = new TreeNode();
+        new_root_ptr->lineno = token.lineno;
+        /* it is write statement */
+        new_root_ptr->nodekind = StmtK;
+        /* store the type of the statment*/
+        new_root_ptr->kind.stmt = WriteK;
+        /* consume the input token */
+        match(token.tType);
+        /* make the experssion left child to this write statment */
+        new_root_ptr->left = Exp();
+        temp_ptr = new_root_ptr;
+    }
+    else {
+        /* display error message and abort the program */
+        error();
+    }
+    return temp_ptr;
+}
