@@ -91,10 +91,21 @@ void printToken(Token t);
 void error(void);
 void match(TokenType expectedTokenType);
 
-TreeNode* Exp(void);
+TreeNode* SimpleExp(void);
 TreeNode* term(void);
 TreeNode* factor(void);
-
+/*****************************************
+ *      Karim Amin functions prototypes  *
+ *****************************************/
+TreeNode* Exp(void);
+TreeNode* WriteStmt(void);
+TreeNode* ReadStmt(void);
+TreeNode* AssignStmt(void);
+TreeNode* RepeatStmt(void);
+TreeNode* IfStmt(void);
+TreeNode* Statement(void);
+TreeNode* Stmt_Sequence(void);
+TreeNode* Program(void);
 // printing the exp of the tree
 void inOrder(TreeNode* root); // for tree traversal
 void printExpNode(TreeNode* node);
@@ -112,7 +123,7 @@ int main() {
 
     TreeNode* root;
     token = getToken(); // initialize the token
-    root = Exp(); // build the tree
+    root = SimpleExp(); // build the tree
 
      // print the tree
     inOrder(root);
@@ -134,7 +145,7 @@ void error(void) {
     exit(1);
 }
 
-TreeNode* Exp(void) {
+TreeNode* SimpleExp(void) {
     TreeNode* temp = new TreeNode();
 
     temp = term();
@@ -347,4 +358,16 @@ Token getToken() {
 
 void printToken(Token t) {
     cout << t.lineno << ": " << t.tType << ", " << t.tVal << endl;
+}
+/*****************************************
+ *    Karim Amin functions definitions   *
+ *****************************************/
+TreeNode* Exp(void) {
+    /* Create new node */
+    TreeNode* temp_ptr = new TreeNode();
+    temp_ptr = SimpleExp();
+    if (token.tType == LESSTHAN || token.tType == EQUAL) {
+        TreeNode* curr_ptr = new TreeNode;
+
+    }
 }
