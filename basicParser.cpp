@@ -16,59 +16,59 @@ typedef enum {
     SEMICOLON, IF, THEN, ELSE, END, REPEAT, UNTIL, IDENTIFIER, ASSIGN, READ, WRITE, LESSTHAN, EQUAL, PLUS, MINUS, MULT, DIV, OPENBRACKET, CLOSEDBRACKET, NUMBER, ERR, eof
 }TokenType;
 
-typedef struct Token{
-  TokenType tType;
-  string tVal;
-  int lineno;
+typedef struct Token {
+    TokenType tType;
+    string tVal;
+    int lineno;
 }Token;
 
-typedef enum { START, INCOMMENT, INNUM, INID, INASSIGN, DONE, ERROR}state;
+typedef enum { START, INCOMMENT, INNUM, INID, INASSIGN, DONE, ERROR }state;
 
-typedef enum {StmtK, ExpK} NodeKind;
-typedef enum {IfK, RepeatK, AssignK, ReadK, WriteK}StmtKind;
-typedef enum {OpK, ConstK, Idk} ExpKind;
+typedef enum { StmtK, ExpK } NodeKind;
+typedef enum { IfK, RepeatK, AssignK, ReadK, WriteK }StmtKind;
+typedef enum { OpK, ConstK, Idk } ExpKind;
 
 /* ExpType is used for type checking*/
-typedef enum {Void, Integer, Boolean} ExpType;
+typedef enum { Void, Integer, Boolean } ExpType;
 
-class TreeNode{
+class TreeNode {
 public:
-  // struct treeNode * child[MAXCHILDREN];
-  // changed interface
-  struct TreeNode * left;
-  struct TreeNode * right;
-  struct TreeNode * middle;
-  
-  struct TreeNode * sibling;
-  int lineno;
-  NodeKind nodekind;
-  union{StmtKind stmt; ExpKind exp;}kind;
-  union{TokenType op; int val; char * name;} attr;
-  ExpType type; // for type checking for exps
+    // struct treeNode * child[MAXCHILDREN];
+    // changed interface
+    struct TreeNode* left;
+    struct TreeNode* right;
+    struct TreeNode* middle;
 
-  TreeNode(){
-    left = nullptr; right = nullptr; middle = nullptr;
-    sibling = nullptr;
-    lineno = -1;
-  }
+    struct TreeNode* sibling;
+    int lineno;
+    NodeKind nodekind;
+    union { StmtKind stmt; ExpKind exp; }kind;
+    union { TokenType op; int val; char* name; } attr;
+    ExpType type; // for type checking for exps
+
+    TreeNode() {
+        left = nullptr; right = nullptr; middle = nullptr;
+        sibling = nullptr;
+        lineno = -1;
+    }
 };
 
 // maps for transormations
-map<char, char> symbols = {{'+', '+'}, {'-', '-'}, {'*', '*'}, {'/', '/'}, {'=', '='}, {'<', '<'}, {'(', '('}, {')', ')'}, {';', ';'}};
+map<char, char> symbols = { {'+', '+'}, {'-', '-'}, {'*', '*'}, {'/', '/'}, {'=', '='}, {'<', '<'}, {'(', '('}, {')', ')'}, {';', ';'} };
 
 map<string, string> reservedWords = { {"if", "if"}, {"then", "then"}, {"else", "else"}, {"end", "end"}, {"repeat", "repeat"}, {"until", "until"}, {"read", "read"}, {"write", "write"},
 };
 
-map<char, TokenType> specialTypes = {{'+', PLUS}, {'-', MINUS}, {'*', MULT}, {'/', DIV}, {'=', ASSIGN}, {'<', LESSTHAN}, {'(', OPENBRACKET}, {')', CLOSEDBRACKET}, {';', SEMICOLON},
+map<char, TokenType> specialTypes = { {'+', PLUS}, {'-', MINUS}, {'*', MULT}, {'/', DIV}, {'=', ASSIGN}, {'<', LESSTHAN}, {'(', OPENBRACKET}, {')', CLOSEDBRACKET}, {';', SEMICOLON},
 };
 
-map<string, TokenType> reservedTypes = { {"if", IF}, {"then", THEN}, {"else", ELSE}, {"end", END}, {"repeat", REPEAT}, {"until", UNTIL}, {"read", READ}, {"write", WRITE}};
+map<string, TokenType> reservedTypes = { {"if", IF}, {"then", THEN}, {"else", ELSE}, {"end", END}, {"repeat", REPEAT}, {"until", UNTIL}, {"read", READ}, {"write", WRITE} };
 
 // not nessesary used only for visualization
-map<TokenType, char> spMap = {{PLUS, '+'}, {MINUS, '-'}, {MULT, '*'}, {DIV, '/'}, {ASSIGN, '='}, {LESSTHAN, '<'}, {OPENBRACKET, '('}, {CLOSEDBRACKET, ')'}, {SEMICOLON, ';'},
+map<TokenType, char> spMap = { {PLUS, '+'}, {MINUS, '-'}, {MULT, '*'}, {DIV, '/'}, {ASSIGN, '='}, {LESSTHAN, '<'}, {OPENBRACKET, '('}, {CLOSEDBRACKET, ')'}, {SEMICOLON, ';'},
 };
 
-map<TokenType, string> resMap = { {IF, "if"}, {THEN, "then"}, {ELSE, "else"}, {END, "end"}, {REPEAT, "repeat"}, {UNTIL, "until"}, {READ, "read"}, {WRITE, "write"}};
+map<TokenType, string> resMap = { {IF, "if"}, {THEN, "then"}, {ELSE, "else"}, {END, "end"}, {REPEAT, "repeat"}, {UNTIL, "until"}, {READ, "read"}, {WRITE, "write"} };
 
 
 
@@ -89,151 +89,140 @@ void printToken(Token t);
 
 // parser
 void error(void);
-
 void match(TokenType expectedTokenType);
 
-TreeNode* SimpleExp(void);
-TreeNode* term(void);
-TreeNode* factor(void); 
-/*****************************************
- *      Karim Amin functions prototypes  *
- *****************************************/     
 TreeNode* Exp(void);
-TreeNode* WriteStmt(void);
-TreeNode* ReadStmt(void);
-TreeNode* AssignStmt(void);
-TreeNode* RepeatStmt(void);
-TreeNode* IfStmt(void); 
-TreeNode* Statement(void);
-TreeNode* Stmt_Sequence(void);
-TreeNode* Program(void);
+TreeNode* term(void);
+TreeNode* factor(void);
+
 // printing the exp of the tree
-void inOrder(TreeNode * root); // for tree traversal
-void printExpNode(TreeNode * node);
+void inOrder(TreeNode* root); // for tree traversal
+void printExpNode(TreeNode* node);
 
 int main() {
-  // initialize the scanner
-  string filePath = "./test1.txt";
-  inputText = "";
-  string textLine = "";
-  ifstream inputTextFile(filePath);
-  while (getline(inputTextFile, textLine)) {
-    inputText += textLine + "\n";
-  }
-  inputTextIdx = 0; inputTextLimit = inputText.size(); isError = false;
+    // initialize the scanner
+    string filePath = "./test1.txt";
+    inputText = "";
+    string textLine = "";
+    ifstream inputTextFile(filePath);
+    while (getline(inputTextFile, textLine)) {
+        inputText += textLine + "\n";
+    }
+    inputTextIdx = 0; inputTextLimit = inputText.size(); isError = false;
 
-  TreeNode * root;
-  token = getToken(); // initialize the token
-  root = SimpleExp(); // build the tree
+    TreeNode* root;
+    token = getToken(); // initialize the token
+    root = Exp(); // build the tree
 
-   // print the tree
-  inOrder(root);
-  cout << endl;
+     // print the tree
+    inOrder(root);
+    cout << endl;
 
-  inputTextFile.close();
-  return 0;
+    inputTextFile.close();
+    return 0;
 }
 
-void match(TokenType expectedTokenType){
-  // advances the token to the next char
-  if(token.tType == expectedTokenType) token = getToken();
-  else error();
+void match(TokenType expectedTokenType) {
+    // advances the token to the next char
+    if (token.tType == expectedTokenType) token = getToken();
+    else error();
 }
 
 // not yet complete until looking how to correct parser errors
-void error(void){
-  fprintf(stderr, "Error\n");
-  exit(1);
+void error(void) {
+    fprintf(stderr, "Error\n");
+    exit(1);
 }
 
-TreeNode* SimpleExp(void){
-  TreeNode *temp = new TreeNode();
-  temp = term();
-  while(token.tType == PLUS || token.tType == MINUS){
+TreeNode* Exp(void) {
+    TreeNode* temp = new TreeNode();
 
-    TreeNode * newTemp = new TreeNode();
-    newTemp->lineno = token.lineno; // take the line number
-    newTemp->nodekind = ExpK; // expression node
-    newTemp->type = Integer; // integer expression
-    newTemp->kind.exp = OpK; // kind of exp
-    newTemp->attr.op = token.tType;
+    temp = term();
+    while (token.tType == PLUS || token.tType == MINUS) {
 
-    match(token.tType);
-    newTemp->left = temp;
-    newTemp->right = term();
-    temp = newTemp;
-  }
-  return temp;
+        TreeNode* newTemp = new TreeNode();
+        newTemp->lineno = token.lineno; // take the line number
+        newTemp->nodekind = ExpK; // expression node
+        newTemp->type = Integer; // integer expression
+        newTemp->kind.exp = OpK; // kind of exp
+        newTemp->attr.op = token.tType;
+
+        match(token.tType);
+        newTemp->left = temp;
+        newTemp->right = term();
+        temp = newTemp;
+    }
+    return temp;
 }
 
-TreeNode* term(void){
-  TreeNode *temp = new TreeNode();
+TreeNode* term(void) {
+    TreeNode* temp = new TreeNode();
 
-  temp = factor();
-  while(token.tType == MULT){
-    TreeNode * newTemp = new TreeNode();
-    newTemp->lineno = token.lineno; // take the line number
-    newTemp->nodekind = ExpK; // expression node
-    newTemp->type = Integer; // integer expression
-    newTemp->kind.exp = OpK; // kind of exp
-    newTemp->attr.op = token.tType;
+    temp = factor();
+    while (token.tType == MULT) {
+        TreeNode* newTemp = new TreeNode();
+        newTemp->lineno = token.lineno; // take the line number
+        newTemp->nodekind = ExpK; // expression node
+        newTemp->type = Integer; // integer expression
+        newTemp->kind.exp = OpK; // kind of exp
+        newTemp->attr.op = token.tType;
 
-    match(token.tType);
-    newTemp->left = temp;
-    newTemp->right = factor();
-    temp = newTemp;
-  }
-  return temp;
+        match(token.tType);
+        newTemp->left = temp;
+        newTemp->right = factor();
+        temp = newTemp;
+    }
+    return temp;
 }
 
 // watch for newTemp
-TreeNode* factor(void){
-  TreeNode *temp = new TreeNode();
-  temp->lineno = token.lineno; // take the line number
-  temp->nodekind = ExpK; // expression node
-  temp->type = Integer; // integer expression
+TreeNode* factor(void) {
+    TreeNode* temp = new TreeNode();
+    temp->lineno = token.lineno; // take the line number
+    temp->nodekind = ExpK; // expression node
+    temp->type = Integer; // integer expression
 
-  if(token.tType == OPENBRACKET){
-    match(OPENBRACKET);
-    temp = SimpleExp();
-    match(CLOSEDBRACKET);
-  }
-  else if(token.tType == NUMBER){
-    temp->attr.val = stoi(token.tVal);
-    temp->kind.exp = ConstK; // kind of exp
-    token = getToken();
-  }
-  else error();
-  return temp;
-}
-
-void inOrder(TreeNode * root){
-  if(root->left != nullptr) {
-    inOrder(root->left);
-  }
-  // cout << root->attr.val << " ";
-  printExpNode(root);
-  if(root->right != nullptr) inOrder(root->right);
-}
-
-void printExpNode(TreeNode * node){
-  if(node->nodekind == ExpK){
-    switch(node->kind.exp){
-      case OpK:
-        cout << spMap[node->attr.op] << " ";
-        // cout << node->attr.op << endl;
-        // cout << "done" <<endl;
-        break;
-      case ConstK:
-        cout << node->attr.val << " ";
-        // cout << "done" <<endl;
-        break;
-      case Idk:
-      cout << node->attr.name << " ";
-        break;
-
+    if (token.tType == OPENBRACKET) {
+        match(OPENBRACKET);
+        temp = Exp();
+        match(CLOSEDBRACKET);
     }
-  }
+    else if (token.tType == NUMBER) {
+        temp->attr.val = stoi(token.tVal);
+        temp->kind.exp = ConstK; // kind of exp
+        token = getToken();
+    }
+    else error();
+    return temp;
+}
+
+void inOrder(TreeNode* root) {
+    if (root->left != nullptr) {
+        inOrder(root->left);
+    }
+    // cout << root->attr.val << " ";
+    printExpNode(root);
+    if (root->right != nullptr) inOrder(root->right);
+}
+
+void printExpNode(TreeNode* node) {
+    if (node->nodekind == ExpK) {
+        switch (node->kind.exp) {
+        case OpK:
+            cout << spMap[node->attr.op] << " ";
+            // cout << node->attr.op << endl;
+            // cout << "done" <<endl;
+            break;
+        case ConstK:
+            cout << node->attr.val << " ";
+            // cout << "done" <<endl;
+            break;
+        case Idk:
+            cout << node->attr.name << " ";
+            break;
+
+        }
+    }
 }
 
 bool isSymbol(char symbol) { return symbols.find(symbol) != symbols.end(); }
@@ -246,18 +235,7 @@ Token getToken() {
     int nextIndex;
 
     nextState = currentState = START;
-    
-    if(inputTextIdx == inputTextLimit){
-      currentToken.tVal = "";
-      currentToken.tType = eof;
-      currentToken.lineno = lineNum;
-      return currentToken;
-    }
     while (currentState != DONE) {
-        if (inputText[inputTextIdx] == '\n'){
-          // cout << endl;
-          lineNum++;
-        }
         currentState = nextState;
         nextIndex = inputTextIdx + 1;
         switch (currentState) {
@@ -269,9 +247,9 @@ Token getToken() {
             else if (inputText[nextIndex] == ' ' || inputText[nextIndex] == '\t' || inputText[nextIndex] == '\n') inputTextIdx++;
             else if (inputText[nextIndex] == '{') inputTextIdx++;
             else inputTextIdx++; // error
-            if(isSymbol(inputText[inputTextIdx])) {
-              currentToken.tType = specialTypes[inputText[inputTextIdx]];
-              currentToken.lineno = lineNum;
+            if (isSymbol(inputText[inputTextIdx])) {
+                currentToken.tType = specialTypes[inputText[inputTextIdx]];
+                currentToken.lineno = lineNum;
             }
             break;
         case INCOMMENT:
@@ -304,18 +282,18 @@ Token getToken() {
         case DONE:
             inputTextIdx++;
             if (isReservedWord(output)) {
-              currentToken.tType = reservedTypes[output];
-              currentToken.lineno = lineNum;
+                currentToken.tType = reservedTypes[output];
+                currentToken.lineno = lineNum;
             }
             currentToken.tVal = output;
             return currentToken;
             break;
         case ERROR:
-            if(inputTextIdx == inputTextLimit && output == ""){
-              currentToken.tVal = "EOF";
-              currentToken.tType = eof;
-              currentToken.lineno = lineNum;
-              return currentToken;
+            if (inputTextIdx == inputTextLimit && output == "") {
+                currentToken.tVal = "EOF";
+                currentToken.tType = eof;
+                currentToken.lineno = lineNum;
+                return currentToken;
             }
             isError = true;
             currentToken.tType = ERR;
@@ -361,9 +339,12 @@ Token getToken() {
         default: // error
             break;
         }
+        if (inputTextIdx < inputTextLimit && inputText[inputTextIdx] == '\n') {
+            lineNum++;
+        }
     }
 }
 
-void printToken(Token t){
-  cout << t.lineno << ": " << t.tType << ", " << t.tVal << endl;
+void printToken(Token t) {
+    cout << t.lineno << ": " << t.tType << ", " << t.tVal << endl;
 }
