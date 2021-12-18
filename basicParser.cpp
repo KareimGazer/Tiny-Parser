@@ -421,3 +421,37 @@ TreeNode* WriteStmt(void) {
     }
     return temp_ptr;
 }
+/*
+ * Describtion:  this function returns pointer to define this grammar Rule ReadStmt ---------> Read identifier
+ * this function does not have any children
+ */
+TreeNode* ReadStmt(void) {
+    /* Create new node */
+    TreeNode* temp_ptr = new TreeNode();
+    /* check non-terminal "write" */
+    if (token.tType == READ) {
+        TreeNode* new_root_ptr = new TreeNode();
+        new_root_ptr->lineno = token.lineno;
+        /* it is Read statement */
+        new_root_ptr->nodekind = StmtK;
+        /* store the type of the statment*/
+        new_root_ptr->kind.stmt = ReadK;
+        /* consume the input token */
+        match(token.tType);
+        if (token.tType == IDENTIFIER) {
+            /* store the name of the identifier as an attribute in the root pointer*/
+            new_root_ptr->attr.name = &token.tVal[0];
+        }
+        else {
+            /* display error message and abort the program */
+            error();
+        }
+        temp_ptr = new_root_ptr;
+    }
+    else {
+        /* display error message and abort the program */
+        error();
+    }
+    /* return the root pointer */
+    return temp_ptr;
+}
