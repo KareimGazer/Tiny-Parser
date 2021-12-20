@@ -38,18 +38,21 @@ public:
     struct TreeNode* left;
     struct TreeNode* right;
     struct TreeNode* middle;
-
     struct TreeNode* sibling;
-    int lineno;
-    NodeKind nodekind;
     union { StmtKind stmt; ExpKind exp; }kind;
-    union { TokenType op; int val; char* name; } attr;
+    NodeKind nodekind;
     ExpType type; // for type checking for exps
-
+    TokenType attr_op;
+    int lineno;
+    int attr_val;
+    string attr_name;
     TreeNode() {
         left = nullptr; right = nullptr; middle = nullptr;
         sibling = nullptr;
         lineno = -1;
+        attr_name = "";
+        attr_val = -1;
+
     }
 };
 
@@ -82,30 +85,30 @@ int lineNum = 1;
 Token token; // the globla token variable (current next token)
 
 // scanner
-Token getToken();
-bool isSymbol(char symbol);
-bool isReservedWord(string word);
-void printToken(Token t);
+Token Scanner_getToken();
+bool Scanner_IsSymbol(char symbol);
+bool Scanner_IsReservedWord(string word);
+void Scanner_PrintToken(Token t);
 
 // parser
-void error(void);
-void match(TokenType expectedTokenType);
+void Parser_Error(void);
+void Parser_Match(TokenType expectedTokenType);
 
-TreeNode* SimpleExp(void);
-TreeNode* term(void);
-TreeNode* factor(void);
+TreeNode* Parser_SimpleExp(void);
+TreeNode* Parser_Term(void);
+TreeNode* Parser_Factor(void);
 /*****************************************
  *      Karim Amin functions prototypes  *
  *****************************************/
-TreeNode* Exp(void);
-TreeNode* WriteStmt(void);
-TreeNode* ReadStmt(void);
-TreeNode* AssignStmt(void);
-TreeNode* RepeatStmt(void);
-TreeNode* IfStmt(void);
-TreeNode* Statement(void);
-TreeNode* Stmt_Sequence(void);
-TreeNode* Program(void);
+TreeNode* Parser_Exp(void);
+TreeNode* Parser_WriteStmt(void);
+TreeNode* Parser_ReadStmt(void);
+TreeNode* Parser_AssignStmt(void);
+TreeNode* Parser_RepeatStmt(void);
+TreeNode* Parser_IfStmt(void);
+TreeNode* Parser_Statement(void);
+TreeNode* Parser_Stmt_Sequence(void);
+TreeNode* Parser_Program(void);
 // printing the exp of the tree
 void inOrder(TreeNode* root); // for tree traversal
 void printExpNode(TreeNode* node);
@@ -122,33 +125,34 @@ int main() {
     inputTextIdx = 0; inputTextLimit = inputText.size(); isError = false;
 
     TreeNode* root;
-    token = getToken(); // initialize the token
-    root = SimpleExp(); // build the tree
+    token = Scanner_getToken(); // initialize the token
+    root = Parser_ReadStmt(); // build the tree
+    cout << root->attr_name << root->kind.stmt << endl;
 
-     // print the tree
-    inOrder(root);
-    cout << endl;
+    // print the tree
+  /* inOrder(root);
+   cout << endl;*/
 
     inputTextFile.close();
     return 0;
 }
 
-void match(TokenType expectedTokenType) {
+void Parser_Match(TokenType expectedTokenType) {
     // advances the token to the next char
-    if (token.tType == expectedTokenType) token = getToken();
-    else error();
+    if (token.tType == expectedTokenType) token = Scanner_getToken();
+    else Parser_Error();
 }
 
 // not yet complete until looking how to correct parser errors
-void error(void) {
+void Parser_Error(void) {
     fprintf(stderr, "Error\n");
     exit(1);
 }
 
-TreeNode* SimpleExp(void) {
+TreeNode* Parser_SimpleExp(void) {
     TreeNode* temp = new TreeNode();
 
-    temp = term();
+    temp = Parser_Term();
     while (token.tType == PLUS || token.tType == MINUS) {
 
         TreeNode* newTemp = new TreeNode();
@@ -156,54 +160,54 @@ TreeNode* SimpleExp(void) {
         newTemp->nodekind = ExpK; // expression node
         newTemp->type = Integer; // integer expression
         newTemp->kind.exp = OpK; // kind of exp
-        newTemp->attr.op = token.tType;
+        newTemp->attr_op = token.tType;
 
-        match(token.tType);
+        Parser_Match(token.tType);
         newTemp->left = temp;
-        newTemp->right = term();
+        newTemp->right = Parser_Term();
         temp = newTemp;
     }
     return temp;
 }
 
-TreeNode* term(void) {
+TreeNode* Parser_Term(void) {
     TreeNode* temp = new TreeNode();
 
-    temp = factor();
+    temp = Parser_Factor();
     while (token.tType == MULT) {
         TreeNode* newTemp = new TreeNode();
         newTemp->lineno = token.lineno; // take the line number
         newTemp->nodekind = ExpK; // expression node
         newTemp->type = Integer; // integer expression
         newTemp->kind.exp = OpK; // kind of exp
-        newTemp->attr.op = token.tType;
+        newTemp->attr_op = token.tType;
 
-        match(token.tType);
+        Parser_Match(token.tType);
         newTemp->left = temp;
-        newTemp->right = factor();
+        newTemp->right = Parser_Factor();
         temp = newTemp;
     }
     return temp;
 }
 
 // watch for newTemp
-TreeNode* factor(void) {
+TreeNode* Parser_Factor(void) {
     TreeNode* temp = new TreeNode();
     temp->lineno = token.lineno; // take the line number
     temp->nodekind = ExpK; // expression node
     temp->type = Integer; // integer expression
 
     if (token.tType == OPENBRACKET) {
-        match(OPENBRACKET);
-        temp = Exp();
-        match(CLOSEDBRACKET);
+        Parser_Match(OPENBRACKET);
+        temp = Parser_Exp();
+        Parser_Match(CLOSEDBRACKET);
     }
     else if (token.tType == NUMBER) {
-        temp->attr.val = stoi(token.tVal);
+        temp->attr_val = stoi(token.tVal);
         temp->kind.exp = ConstK; // kind of exp
-        token = getToken();
+        token = Scanner_getToken();
     }
-    else error();
+    else Parser_Error();
     return temp;
 }
 
@@ -220,26 +224,33 @@ void printExpNode(TreeNode* node) {
     if (node->nodekind == ExpK) {
         switch (node->kind.exp) {
         case OpK:
-            cout << spMap[node->attr.op] << " ";
+            cout << spMap[node->attr_op] << " ";
             // cout << node->attr.op << endl;
             // cout << "done" <<endl;
             break;
         case ConstK:
-            cout << node->attr.val << " ";
+            cout << node->attr_val << " ";
             // cout << "done" <<endl;
             break;
         case Idk:
-            cout << node->attr.name << " ";
+            cout << node->attr_name << " ";
             break;
 
         }
     }
+    else if (node->nodekind == StmtK) {
+        switch (node->kind.stmt) {
+        case WriteK:
+            cout << "write";
+            break;
+        }
+    }
 }
 
-bool isSymbol(char symbol) { return symbols.find(symbol) != symbols.end(); }
-bool isReservedWord(string word) { return reservedWords.find(word) != reservedWords.end(); }
+bool Scanner_IsSymbol(char symbol) { return symbols.find(symbol) != symbols.end(); }
+bool Scanner_IsReservedWord(string word) { return reservedWords.find(word) != reservedWords.end(); }
 
-Token getToken() {
+Token Scanner_getToken() {
     string output = ""; Token currentToken;
     inputTextIdx--;
     state currentState, nextState;
@@ -251,14 +262,14 @@ Token getToken() {
         nextIndex = inputTextIdx + 1;
         switch (currentState) {
         case START:
-            if (isalpha(inputText[nextIndex]) || isdigit(inputText[nextIndex]) || isSymbol(inputText[nextIndex]) || inputText[nextIndex] == ':') {
+            if (isalpha(inputText[nextIndex]) || isdigit(inputText[nextIndex]) || Scanner_IsSymbol(inputText[nextIndex]) || inputText[nextIndex] == ':') {
                 output += inputText[nextIndex];
                 inputTextIdx++;
             }
             else if (inputText[nextIndex] == ' ' || inputText[nextIndex] == '\t' || inputText[nextIndex] == '\n') inputTextIdx++;
             else if (inputText[nextIndex] == '{') inputTextIdx++;
             else inputTextIdx++; // error
-            if (isSymbol(inputText[inputTextIdx])) {
+            if (Scanner_IsSymbol(inputText[inputTextIdx])) {
                 currentToken.tType = specialTypes[inputText[inputTextIdx]];
                 currentToken.lineno = lineNum;
             }
@@ -292,7 +303,7 @@ Token getToken() {
             break;
         case DONE:
             inputTextIdx++;
-            if (isReservedWord(output)) {
+            if (Scanner_IsReservedWord(output)) {
                 currentToken.tType = reservedTypes[output];
                 currentToken.lineno = lineNum;
             }
@@ -322,7 +333,7 @@ Token getToken() {
             else if (inputText[nextIndex] == ':') nextState = INASSIGN;
             else if (isalpha(inputText[nextIndex])) nextState = INID;
             else if (isdigit(inputText[nextIndex])) nextState = INNUM;
-            else if (isSymbol(inputText[nextIndex])) nextState = DONE;
+            else if (Scanner_IsSymbol(inputText[nextIndex])) nextState = DONE;
             else if (inputText[nextIndex] == ' ' || inputText[nextIndex] == '\t' || inputText[nextIndex] == '\n')  nextState = START;
             else nextState = ERROR;
             break;
@@ -356,21 +367,21 @@ Token getToken() {
     }
 }
 
-void printToken(Token t) {
+void Scanner_PrintToken(Token t) {
     cout << t.lineno << ": " << t.tType << ", " << t.tVal << endl;
 }
 /*****************************************
  *    Karim Amin functions definitions   *
  *****************************************/
-T/*
- * Describtion:  this function returns pointer to defien this grammar Rule Exp ---------> SimpleExp [ ( < | = ) SimpleExp ]
- */
-    TreeNode* Exp(void) {
+ /*
+  * Describtion:  this function returns pointer to define this grammar Rule Exp ---------> SimpleExp [ ( < | = ) SimpleExp ]
+  */
+TreeNode* Parser_Exp(void) {
     /* Create new node */
     TreeNode* temp_ptr = new TreeNode();
     /* this will be the left child of the new node */
     /* after this line the token will point to the next token to be consumed */
-    temp_ptr = SimpleExp();
+    temp_ptr = Parser_SimpleExp();
     if (token.tType == LESSTHAN || token.tType == EQUAL) {
         /* create node from type experssion (operation) */
         /* this will be the new root pointer */
@@ -383,11 +394,11 @@ T/*
         curr_ptr->type = Integer;
         curr_ptr->kind.exp = OpK;
         /* the attribute will be ( < OR = )*/
-        curr_ptr->attr.op = token.tType;
+        curr_ptr->attr_op = token.tType;
         /* advance the input token */
-        match(token.tType);
+        Parser_Match(token.tType);
         curr_ptr->left = temp_ptr;
-        curr_ptr->right = SimpleExp();
+        curr_ptr->right = Parser_SimpleExp();
         /* to return Root pointer */
         temp_ptr = curr_ptr;
     }
@@ -398,7 +409,7 @@ T/*
  * Describtion:  this function returns pointer to define this grammar Rule WriteStmt ---------> Write Exp
  *
  */
-TreeNode* WriteStmt(void) {
+TreeNode* Parser_WriteStmt(void) {
     /* Create new node */
     TreeNode* temp_ptr = new TreeNode();
     /* check non-terminal "write" */
@@ -410,14 +421,14 @@ TreeNode* WriteStmt(void) {
         /* store the type of the statment*/
         new_root_ptr->kind.stmt = WriteK;
         /* consume the input token */
-        match(token.tType);
+        Parser_Match(token.tType);
         /* make the experssion middle child to this write statment */
-        new_root_ptr->middle = Exp();
+        new_root_ptr->middle = Parser_Exp();
         temp_ptr = new_root_ptr;
     }
     else {
         /* display error message and abort the program */
-        error();
+        Parser_Error();
     }
     return temp_ptr;
 }
@@ -425,7 +436,7 @@ TreeNode* WriteStmt(void) {
  * Describtion:  this function returns pointer to define this grammar Rule ReadStmt ---------> Read identifier
  * this function does not have any children
  */
-TreeNode* ReadStmt(void) {
+TreeNode* Parser_ReadStmt(void) {
     /* Create new node */
     TreeNode* temp_ptr = new TreeNode();
     /* check non-terminal "write" */
@@ -437,21 +448,56 @@ TreeNode* ReadStmt(void) {
         /* store the type of the statment*/
         new_root_ptr->kind.stmt = ReadK;
         /* consume the input token */
-        match(token.tType);
+        Parser_Match(token.tType);
         if (token.tType == IDENTIFIER) {
             /* store the name of the identifier as an attribute in the root pointer*/
-            new_root_ptr->attr.name = token.tVal;
+            new_root_ptr->attr_name = &token.tVal[0];
         }
         else {
             /* display error message and abort the program */
-            error();
+            Parser_Error();
         }
         temp_ptr = new_root_ptr;
     }
     else {
         /* display error message and abort the program */
-        error();
+        Parser_Error();
     }
-    /* return the root pointer */
     return temp_ptr;
+}
+/*
+ * Describtion:  this function returns pointer to define this grammar Rule Assign_Stmt --------->  identifier := exp
+ * this function has only one child which is experssion and the attribute of the statement is identifier
+ */
+TreeNode* Parser_AssignStmt(void) {
+    /* Create new node */
+    TreeNode* new_root_ptr = new TreeNode();
+    if (token.tType == IDENTIFIER) {
+        /* store the name of the identifier as an attribute in the assign statment node */
+        new_root_ptr->attr_name = token.tVal;
+    }
+    else {
+        /* display error message and abort the program */
+        Parser_Error();
+    }
+    /* advance the input after storing the identifier */
+    Parser_Match(token.tType);
+    /* check non-terminal ":=" equal operator */
+    if (token.tType == ASSIGN) {
+        /* store the line number */
+        new_root_ptr->lineno = token.lineno;
+        /* it is assign statement */
+        new_root_ptr->nodekind = StmtK;
+        /* store the type of the statment*/
+        new_root_ptr->kind.stmt = AssignK;
+        /* consume the input token */
+        Parser_Match(token.tType);
+        /* make the experssion middle child to this write statment */
+        new_root_ptr->middle = Parser_Exp();
+    }
+    else {
+        /* display error message and abort the program */
+        Parser_Error();
+    }
+    return new_root_ptr;
 }
