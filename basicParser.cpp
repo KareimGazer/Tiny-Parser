@@ -440,7 +440,7 @@ TreeNode* ReadStmt(void) {
         match(token.tType);
         if (token.tType == IDENTIFIER) {
             /* store the name of the identifier as an attribute in the root pointer*/
-            new_root_ptr->attr.name = &token.tVal[0];
+            new_root_ptr->attr.name = token.tVal;
         }
         else {
             /* display error message and abort the program */
