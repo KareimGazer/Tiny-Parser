@@ -563,3 +563,33 @@ TreeNode* Parser_IfStmt(void) {
     Parser_Match(END);
     return new_root_ptr;
 }
+/*
+ * Describtion:  this function returns pointer to define this grammar Rule Statment ---> if_stmt | repeat_stmt | assign_stmt | read_stmt | write_stmt
+ * this function selects between the types of the statments and returns pointer to this statment
+ */
+TreeNode* Parser_Statement(void) {
+    /* create pointer to statment node */
+    TreeNode* ptr2node = nullptr;
+    switch (token.tType) {
+    case IF:
+        ptr2node = Parser_IfStmt();
+        break;
+    case REPEAT:
+        ptr2node = Parser_RepeatStmt();
+        break;
+    case IDENTIFIER:
+        ptr2node = Parser_AssignStmt();
+        break;
+    case WRITE:
+        ptr2node = Parser_WriteStmt();
+        break;
+    case READ:
+        ptr2node = Parser_ReadStmt();
+        break;
+    default:
+        ptr2node = nullptr;
+        Parser_Error();
+        break;
+    }
+    return ptr2node;
+}
