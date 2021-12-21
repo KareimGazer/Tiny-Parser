@@ -521,15 +521,8 @@ TreeNode* Parser_RepeatStmt(void) {
         Parser_Match(token.tType);
         /* make left child points to the sequence of the statement inside the repeat */
         new_root_ptr->left = Parser_Stmt_Sequence();
-        /* check the non-termenial "until" */
-        if (token.tType == UNTIL) {
-            /* consume the input token */
-            Parser_Match(token.tType);
-        }
-        else {
-            /* display error message and abort the program */
-            Parser_Error();
-        }
+        /* consume the input token and check non-terminal "until" */
+        Parser_Match(UNTIL);
         /* make the condtion middle child to this reapeat statment */
         new_root_ptr->middle = Parser_Exp();
     }
@@ -537,5 +530,36 @@ TreeNode* Parser_RepeatStmt(void) {
         /* display error message and abort the program */
         Parser_Error();
     }
+    return new_root_ptr;
+}
+/*
+ * Describtion:  this function returns pointer to define this grammar Rule If_Stmt ---------> if Exp then Stmt_Sequence [else Stmt_Sequence] end
+ * this function has three childern condition child , body child ,and else child (optional one)
+ */
+TreeNode* Parser_IfStmt(void) {
+    /* Create new node */
+    TreeNode* new_root_ptr = new TreeNode();
+    /* store the line number */
+    new_root_ptr->lineno = token.lineno;
+    /* it is if statement */
+    new_root_ptr->nodekind = StmtK;
+    /* store the type of the statment*/
+    new_root_ptr->kind.stmt = IfK;
+    /* check non-terminal "if" */
+    Parser_Match(IF);
+    new_root_ptr->left = Parser_Exp();
+    /* check non-termial "then" and advance the input token */
+    Parser_Match(THEN);
+    /* the middle pointer points to the body of if statment*/
+    new_root_ptr->middle = Parser_Stmt_Sequence();
+    /* check the optional part */
+    if (token.tType == ELSE) {
+        /* ADVANCE THE INPUT */
+        Parser_Match(ELSE);
+        /* make the right child pints to the optional part */
+        new_root_ptr->right = Parser_Stmt_Sequence();
+    }
+    /* must match the end of the if statment */
+    Parser_Match(END);
     return new_root_ptr;
 }
