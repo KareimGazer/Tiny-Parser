@@ -62,7 +62,7 @@ map<char, char> symbols = { {'+', '+'}, {'-', '-'}, {'*', '*'}, {'/', '/'}, {'='
 map<string, string> reservedWords = { {"if", "if"}, {"then", "then"}, {"else", "else"}, {"end", "end"}, {"repeat", "repeat"}, {"until", "until"}, {"read", "read"}, {"write", "write"},
 };
 
-map<char, TokenType> specialTypes = { {'+', PLUS}, {'-', MINUS}, {'*', MULT}, {'/', DIV}, {'=', ASSIGN}, {'<', LESSTHAN}, {'(', OPENBRACKET}, {')', CLOSEDBRACKET}, {';', SEMICOLON},
+map<char, TokenType> specialTypes = { {'+', PLUS}, {'-', MINUS}, {'*', MULT}, {'/', DIV}, {'=', EQUAL}, {'<', LESSTHAN}, {'(', OPENBRACKET}, {')', CLOSEDBRACKET}, {';', SEMICOLON},
 };
 
 map<string, TokenType> reservedTypes = { {"if", IF}, {"then", THEN}, {"else", ELSE}, {"end", END}, {"repeat", REPEAT}, {"until", UNTIL}, {"read", READ}, {"write", WRITE} };
