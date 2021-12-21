@@ -1,4 +1,3 @@
-
 #include <iostream>
 #include <fstream>
 #include <string>
@@ -127,9 +126,9 @@ int main() {
 
     TreeNode* root;
     token = Scanner_getToken(); // initialize the token
-    root = Parser_ReadStmt(); // build the tree
+    root = Parser_Program(); // build the tree
     cout << root->attr_name << root->kind.stmt << endl;
-
+    cout << root->sibling->attr_name << endl;
     // print the tree
   /* inOrder(root);
    cout << endl;*/
@@ -206,7 +205,12 @@ TreeNode* Parser_Factor(void) {
     else if (token.tType == NUMBER) {
         temp->attr_val = stoi(token.tVal);
         temp->kind.exp = ConstK; // kind of exp
-        token = Scanner_getToken();
+        Parser_Match(NUMBER);
+    }
+    else if (token.tType == IDENTIFIER) {
+        temp->attr_name = token.tVal;
+        temp->kind.exp = Idk;
+        Parser_Match(IDENTIFIER);
     }
     else Parser_Error();
     return temp;
@@ -413,24 +417,17 @@ TreeNode* Parser_Exp(void) {
 TreeNode* Parser_WriteStmt(void) {
     /* Create new node */
     TreeNode* temp_ptr = new TreeNode();
-    /* check non-terminal "write" */
-    if (token.tType == WRITE) {
-        TreeNode* new_root_ptr = new TreeNode();
-        new_root_ptr->lineno = token.lineno;
-        /* it is write statement */
-        new_root_ptr->nodekind = StmtK;
-        /* store the type of the statment*/
-        new_root_ptr->kind.stmt = WriteK;
-        /* consume the input token */
-        Parser_Match(token.tType);
-        /* make the experssion middle child to this write statment */
-        new_root_ptr->middle = Parser_Exp();
-        temp_ptr = new_root_ptr;
-    }
-    else {
-        /* display error message and abort the program */
-        Parser_Error();
-    }
+    TreeNode* new_root_ptr = new TreeNode();
+    new_root_ptr->lineno = token.lineno;
+    /* it is write statement */
+    new_root_ptr->nodekind = StmtK;
+    /* store the type of the statment*/
+    new_root_ptr->kind.stmt = WriteK;
+    /* consume the input token and check non-terminal "write" */
+    Parser_Match(WRITE);
+    /* make the experssion middle child to this write statment */
+    new_root_ptr->middle = Parser_Exp();
+    temp_ptr = new_root_ptr;
     return temp_ptr;
 }
 /*
@@ -446,18 +443,14 @@ TreeNode* Parser_ReadStmt(void) {
         new_root_ptr->lineno = token.lineno;
         /* it is Read statement */
         new_root_ptr->nodekind = StmtK;
-        /* store the type of the statment*/
+        /* store the type of the statment */
         new_root_ptr->kind.stmt = ReadK;
         /* consume the input token */
         Parser_Match(token.tType);
-        if (token.tType == IDENTIFIER) {
-            /* store the name of the identifier as an attribute in the root pointer*/
-            new_root_ptr->attr_name = &token.tVal[0];
-        }
-        else {
-            /* display error message and abort the program */
-            Parser_Error();
-        }
+        /* store the name of the identifier as an attribute in the root pointer */
+        new_root_ptr->attr_name = token.tVal;
+        /* advance the input to be able to get the next token */
+        Parser_Match(IDENTIFIER);
         temp_ptr = new_root_ptr;
     }
     else {
@@ -473,16 +466,10 @@ TreeNode* Parser_ReadStmt(void) {
 TreeNode* Parser_AssignStmt(void) {
     /* Create new node */
     TreeNode* new_root_ptr = new TreeNode();
-    if (token.tType == IDENTIFIER) {
-        /* store the name of the identifier as an attribute in the assign statment node */
-        new_root_ptr->attr_name = token.tVal;
-    }
-    else {
-        /* display error message and abort the program */
-        Parser_Error();
-    }
+    /* store the name of the identifier as an attribute in the assign statment node */
+    new_root_ptr->attr_name = token.tVal;
     /* advance the input after storing the identifier */
-    Parser_Match(token.tType);
+    Parser_Match(IDENTIFIER);
     /* check non-terminal ":=" equal operator */
     if (token.tType == ASSIGN) {
         /* store the line number */
@@ -509,27 +496,20 @@ TreeNode* Parser_AssignStmt(void) {
 TreeNode* Parser_RepeatStmt(void) {
     /* Create new node */
     TreeNode* new_root_ptr = new TreeNode();
-    /* check non-terminal "reapeat" */
-    if (token.tType == REPEAT) {
-        /* store the line number */
-        new_root_ptr->lineno = token.lineno;
-        /* it is repeat statement */
-        new_root_ptr->nodekind = StmtK;
-        /* store the type of the statment*/
-        new_root_ptr->kind.stmt = RepeatK;
-        /* consume the input token */
-        Parser_Match(token.tType);
-        /* make left child points to the sequence of the statement inside the repeat */
-        new_root_ptr->left = Parser_Stmt_Sequence();
-        /* consume the input token and check non-terminal "until" */
-        Parser_Match(UNTIL);
-        /* make the condtion middle child to this reapeat statment */
-        new_root_ptr->middle = Parser_Exp();
-    }
-    else {
-        /* display error message and abort the program */
-        Parser_Error();
-    }
+    /* store the line number */
+    new_root_ptr->lineno = token.lineno;
+    /* it is repeat statement */
+    new_root_ptr->nodekind = StmtK;
+    /* store the type of the statment*/
+    new_root_ptr->kind.stmt = RepeatK;
+    /* consume the input token and check non-terminal "repeat" */
+    Parser_Match(REPEAT);
+    /* make left child points to the sequence of the statement inside the repeat */
+    new_root_ptr->left = Parser_Stmt_Sequence();
+    /* check the non-termenial "until" and consume the input token */
+    Parser_Match(UNTIL);
+    /* make the condtion middle child to this reapeat statment */
+    new_root_ptr->middle = Parser_Exp();
     return new_root_ptr;
 }
 /*
