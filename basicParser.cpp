@@ -1,9 +1,4 @@
 
-// comment from vs code
-
-// comment from amin on github 
-// comment from my
-// comment original
 #include <iostream>
 #include <fstream>
 #include <string>
@@ -499,6 +494,43 @@ TreeNode* Parser_AssignStmt(void) {
         /* consume the input token */
         Parser_Match(token.tType);
         /* make the experssion middle child to this write statment */
+        new_root_ptr->middle = Parser_Exp();
+    }
+    else {
+        /* display error message and abort the program */
+        Parser_Error();
+    }
+    return new_root_ptr;
+}
+/*
+ * Describtion:  this function returns pointer to define this grammar Rule repeat_stmt --------->  repeat stmt_seqence until exp
+ * this function has pointer to the body of the repeat statment and anthor pointer to the condition
+ */
+TreeNode* Parser_RepeatStmt(void) {
+    /* Create new node */
+    TreeNode* new_root_ptr = new TreeNode();
+    /* check non-terminal "reapeat" */
+    if (token.tType == REPEAT) {
+        /* store the line number */
+        new_root_ptr->lineno = token.lineno;
+        /* it is repeat statement */
+        new_root_ptr->nodekind = StmtK;
+        /* store the type of the statment*/
+        new_root_ptr->kind.stmt = RepeatK;
+        /* consume the input token */
+        Parser_Match(token.tType);
+        /* make left child points to the sequence of the statement inside the repeat */
+        new_root_ptr->left = Parser_Stmt_Sequence();
+        /* check the non-termenial "until" */
+        if (token.tType == UNTIL) {
+            /* consume the input token */
+            Parser_Match(token.tType);
+        }
+        else {
+            /* display error message and abort the program */
+            Parser_Error();
+        }
+        /* make the condtion middle child to this reapeat statment */
         new_root_ptr->middle = Parser_Exp();
     }
     else {
