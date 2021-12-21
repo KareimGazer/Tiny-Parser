@@ -593,3 +593,25 @@ TreeNode* Parser_Statement(void) {
     }
     return ptr2node;
 }
+/*
+ * Describtion:  this function returns pointer to define this grammar Rule Stmt_Sequence -------> Statment {; Statment}
+ * this function
+ */
+TreeNode* Parser_Stmt_Sequence(void) {
+    /* create pointer to statment node */
+    TreeNode* first_stmt_ptr = nullptr;
+    TreeNode* next_stmt_ptr = nullptr;
+    TreeNode* prev_stmt_ptr = nullptr;
+    /* creat the first statment */
+    first_stmt_ptr = Parser_Statement();
+    prev_stmt_ptr = first_stmt_ptr;
+    while (token.tType == SEMICOLON) {
+        Parser_Match(SEMICOLON);
+        next_stmt_ptr = Parser_Statement();
+        /* connect the statment by the sibling pointer */
+        prev_stmt_ptr->sibling = next_stmt_ptr;
+        /* move the pointer to the last created node */
+        prev_stmt_ptr = next_stmt_ptr;
+    }
+    return first_stmt_ptr;
+}
