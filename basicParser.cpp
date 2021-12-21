@@ -595,7 +595,7 @@ TreeNode* Parser_Statement(void) {
 }
 /*
  * Describtion:  this function returns pointer to define this grammar Rule Stmt_Sequence -------> Statment {; Statment}
- * this function
+ * this function creates the statment and handle the relations between them (sibling pointer)
  */
 TreeNode* Parser_Stmt_Sequence(void) {
     /* create pointer to statment node */
@@ -614,4 +614,13 @@ TreeNode* Parser_Stmt_Sequence(void) {
         prev_stmt_ptr = next_stmt_ptr;
     }
     return first_stmt_ptr;
+}
+/*
+ * Describtion:  this function returns pointer to define this grammar Rule Program -------> Stmt_Sequence
+ * this function creates the statment sequence for the entire program
+ */
+TreeNode* Parser_Program(void) {
+    TreeNode* program_ptr = nullptr;
+    program_ptr = Parser_Stmt_Sequence();
+    return program_ptr;
 }
