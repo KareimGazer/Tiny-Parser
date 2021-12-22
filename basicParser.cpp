@@ -128,7 +128,10 @@ int main() {
     token = Scanner_getToken(); // initialize the token
     root = Parser_Program(); // build the tree
     cout << root->attr_name << root->kind.stmt << endl;
-    cout << root->sibling->attr_name << endl;
+    cout << root->sibling->kind.stmt << endl;
+    cout << root->sibling->middle->kind.stmt << endl;
+    cout << root->sibling->middle->sibling->kind.stmt << endl;
+    cout << root->sibling->middle->sibling->sibling->kind.stmt << endl;
     // print the tree
   /* inOrder(root);
    cout << endl;*/
